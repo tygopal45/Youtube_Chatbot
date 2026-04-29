@@ -1,7 +1,7 @@
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 
@@ -36,3 +36,27 @@ retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"
 
 retriever.invoke("What is the video about?")
 
+
+# Step 3 : Augmentation
+
+llm = GoogleGenerativeAI(model="models/gemini-2.0-pro")
+
+prompt_template = PromptTemplate.from_template(
+    template="""
+    You are a helpful assistant.
+    Answer ONLY from the provided transcript context.
+    If the context is insufficient to answer the question, say you don't know.
+
+    {context}
+    Question: {question}
+    """,
+    input_variables=["context", "question"]
+)
+
+question = "If the topic of aliens discussed in the video? If yes, what are the key points mentioned about aliens?"
+retriever_docs = retriever.invoke(question)
+
+
+context_text = "\n\n".join(doc.page_content for doc in retriever_docs)
+
+final_prompt = prompt_template.format(context=context_text, question=question)
