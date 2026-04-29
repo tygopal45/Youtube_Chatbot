@@ -60,3 +60,12 @@ retriever_docs = retriever.invoke(question)
 context_text = "\n\n".join(doc.page_content for doc in retriever_docs)
 
 final_prompt = prompt_template.format(context=context_text, question=question)
+
+
+# Step 4 : Generation
+
+response = llm.invoke(final_prompt)
+print(response)
+
+
+
