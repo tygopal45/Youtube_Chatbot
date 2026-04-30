@@ -69,3 +69,27 @@ print(response)
 
 
 
+# Chaining the above steps together
+
+from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+def format_docs(docs):
+    context_text = "\n\n".join(doc.page_content for doc in docs)
+    return context_text
+
+parallel_chain = RunnableParallel({
+    'context': retriever | RunnableLambda(format_docs),
+    'question': RunnablePassthrough()
+})
+
+parallel_chain.invoke("Who is Demis?")
+
+parser = StrOutputParser()
+
+main_chain = parallel_chain | prompt_template | llm | parser
+
+result = main_chain.invoke("Summarize the video please.")
+
+print(result)
+
